@@ -1,38 +1,64 @@
 esphome:
-  name: esp-p1reader
-  platform: ESP8266
-  board: nodemcu
+  name: rpi-pico
   includes:
     - p1reader.h
+# esphome:
+#   name: esp-p1reader
+#   # platform: ESP8266
+#   # board: nodemcu
+  # includes:
+  #   - p1reader.h
 
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
+rp2040:
+  board: rpipicow
+  framework:
+    platform_version: https://github.com/maxgerhardt/platform-raspberrypi.git
 
+
+# wifi:
+#   ssid: !secret wifi_ssid
+#   password: !secret wifi_password
+
+  #fast_connect: True
   # Enable fallback hotspot (captive portal) in case wifi connection fails
+  # ap:
+  #   ssid: "esp-p1reader"
+  #   password: !secret fallback_password
+
   ap:
     ssid: "esp-p1reader"
     password: !secret fallback_password
 
-captive_portal:
+#captive_portal:
 
 # Enable logging
 logger:
   level: DEBUG
-  baud_rate: 0 # disable logging over uart
+  #baud_rate: 0 # disable logging over uart
   
 # Enable Home Assistant API
 api:
-  encryption:
-    key: !secret encryption_key
+
+  # encryption:
+  #   key: !secret encryption_key
     
 ota:
   password: !secret ota_password
 
+# web_server:
+#   port: 80
+
 uart:
-  id: uart_bus
-  tx_pin: TX
-  rx_pin: RX
+  id: uart_1
+  # tx_pin: 
+  #   number: 4
+  # rx_pin:
+  #   number: 5
+  tx_pin: 
+    number: 0
+  rx_pin:
+    number: 1
+    #inverted: true
   baud_rate: 115200
 
 # If your electricity meter is an Aidon, which use the older
@@ -42,9 +68,14 @@ uart:
 # else
 # auto meter_sensor = new P1Reader(id(uart_bus));
 sensor:
+- platform: uptime
+  name: "esp-p1reader Uptime"
+- platform: wifi_signal
+  name: "esp-p1reader Wi-Fi Signal"
+  update_interval: 60s
 - platform: custom
   lambda: |-
-    auto meter_sensor = new P1Reader(id(uart_bus));
+    auto meter_sensor = new P1Reader(id(uart_1));
     App.register_component(meter_sensor);
     return {
       meter_sensor->cumulativeActiveImport,
@@ -185,3 +216,33 @@ sensor:
     accuracy_decimals: 3
     state_class: "measurement"
     device_class: "current"
+
+light:
+  - platform: rgb
+    name: RGB
+    red: r
+    green: g
+    blue: b
+
+output:
+  - platform: rp2040_pwm
+    id: r
+    pin: 2
+  - platform: rp2040_pwm
+    id: g
+    pin: 3
+  - platform: rp2040_pwm
+    id: b
+    pin: 4
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "esp-p1reader IP Address"
+    ssid:
+      name: "esp-p1reader Wi-Fi SSID"
+    bssid:
+      name: "esp-p1reader Wi-Fi BSSID"
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: false
