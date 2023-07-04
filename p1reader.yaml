@@ -36,7 +36,7 @@ ota:
   password: !secret ota_password
 
 uart:
-  id: uart_1
+  id: uart_0
   tx_pin: 
     number: 0
   rx_pin:
@@ -58,7 +58,7 @@ sensor:
   update_interval: 60s
 - platform: custom
   lambda: |-
-    auto meter_sensor = new P1Reader(id(uart_1));
+    auto meter_sensor = new P1Reader(id(uart_0));
     App.register_component(meter_sensor);
     return {
       meter_sensor->cumulativeActiveImport,
