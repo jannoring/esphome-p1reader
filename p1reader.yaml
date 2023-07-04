@@ -2,34 +2,24 @@ esphome:
   name: rpi-pico
   includes:
     - p1reader.h
-# esphome:
-#   name: esp-p1reader
-#   # platform: ESP8266
-#   # board: nodemcu
-  # includes:
-  #   - p1reader.h
 
 rp2040:
   board: rpipicow
   framework:
     platform_version: https://github.com/maxgerhardt/platform-raspberrypi.git
 
-
-# wifi:
-#   ssid: !secret wifi_ssid
-#   password: !secret wifi_password
-
-  #fast_connect: True
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
-  # ap:
-  #   ssid: "esp-p1reader"
-  #   password: !secret fallback_password
-
-  ap:
-    ssid: "esp-p1reader"
-    password: !secret fallback_password
-
-#captive_portal:
+wifi:
+  ssid:  !secret wifi_ssid
+  password:  !secret wifi_password
+  fast_connect: True
+  power_save_mode: NONE
+# Optional manual IP
+  manual_ip:
+    static_ip: 192.168.2.41
+    gateway: 192.168.2.1
+    subnet: 255.255.255.0
+    dns1: 192.168.2.31
+    dns2: 192.168.2.1
 
 # Enable logging
 logger:
@@ -45,15 +35,8 @@ api:
 ota:
   password: !secret ota_password
 
-# web_server:
-#   port: 80
-
 uart:
   id: uart_1
-  # tx_pin: 
-  #   number: 4
-  # rx_pin:
-  #   number: 5
   tx_pin: 
     number: 0
   rx_pin:
