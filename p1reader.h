@@ -72,7 +72,11 @@ class P1Reader : public Component, public UARTDevice {
 
   protected:
     char buffer[BUF_SIZE];
-
+    char buffer2[BUF_SIZE];
+    bool completeLine=false;
+    int pos=0;
+    int len=0;
+    ParsedMessage parsed;
   public:
     Sensor *cumulativeActiveImport = new Sensor();
     Sensor *cumulativeActiveExport = new Sensor();
@@ -112,12 +116,17 @@ class P1Reader : public Component, public UARTDevice {
     Sensor *currentL2 = new Sensor();
     Sensor *currentL3 = new Sensor();
 
-    P1Reader(UARTComponent *parent) : UARTDevice(parent) {}
+    P1Reader(UARTComponent *parent) : UARTDevice(parent) 
+    { 
+      ESP_LOGD("p1reader", "created");
+      parsed = ParsedMessage();
+    }
 
-    void setup() override { }
+    void setup() override { ESP_LOGD("p1reader", "setup called");}
 
     void loop() override
     {
+      //ESP_LOGD("p1reader", "loop called");
       readP1Message();
     }
 
@@ -135,7 +144,9 @@ class P1Reader : public Component, public UARTDevice {
       return crc;
     }
 
-    void parseRow(ParsedMessage* parsed, char* obisCode, char* value) {
+    void parseRow(ParsedMessage* parsed, char* obisCode, char* value) 
+    {
+      ESP_LOGD("p1reader", "code %s : value %s", obisCode, value);
       if (strncmp(obisCode, "1.8.0", 5) == 0) {
         parsed->cumulativeActiveImport = atof(value);
 
@@ -213,7 +224,11 @@ class P1Reader : public Component, public UARTDevice {
 
       } else if (strncmp(obisCode, "71.7.0", 6) == 0) {
         parsed->currentL3 = atof(value);
+      } else
+      {
+        ESP_LOGI("p1reader", "unkown code %s : value %s", obisCode, value);
       }
+
     }
 
     void publishSensors(ParsedMessage* parsed) {
@@ -257,17 +272,84 @@ class P1Reader : public Component, public UARTDevice {
     }
 
   private:
+    
+    int readLine(char *buffer)
+    {
+      char ch;
+      int pos=0;
+      int count=0;
+      int len = Serial.readBytes(&ch, 1);
+
+      if(len==1)
+        ESP_LOGD("p1reader", "readLine3 '%c'", ch);
+      // do
+      // {
+      //   if(len==0)
+      //   {
+      //     count++;
+      //     if(count>1)
+      //       return 0;
+      //   }
+      //   buffer2[pos++] = ch;
+      //   buffer2[pos] = 0;
+      //   ESP_LOGD("p1reader", "readLine2 %s", buffer2);
+      //   if(ch=='\n') 
+      //   {
+      //     buffer2[pos] = 0;
+      //     break;
+      //   }
+      //   pos++;
+      //   len = Serial.readBytes(&ch, 1);
+
+      // } while(len>0);  
+
+     // ESP_LOGD("p1reader", "readLine %s", buffer);
+      return pos;
+    }
     void readP1Message() {
+      //ESP_LOGD("p1reader", "readP1Message");
+
       if (available()) {
+        ESP_LOGD("p1reader", "readP1Message available");
+
         uint16_t crc = 0x0000;
-        ParsedMessage parsed = ParsedMessage();
+        
         bool telegramEnded = false;
-
+        uint8_t ch;
         while (available()) {
-          int len = Serial.readBytesUntil('\n', buffer, BUF_SIZE);
+          //ESP_LOGD("p1reader", "readP1Message read serial until newline");
+          //int len = readLine(buffer);
+          //int len = readBytesUntil('\n', buffer, BUF_SIZE);
+          int pos=0;
+          int len=0;
+          while(read_byte(&ch))
+          {
+            if((char)ch=='\n')
+            {
+              completeLine = true;
+              //ESP_LOGD("p1reader", "endline");
+              break;
+            }
+            buffer[pos++]=(char)ch;
+            buffer[pos]=0;
+            len=pos;
+            //ESP_LOGD("p1reader", "char read '%d'", ch);
 
-          if (len > 0) {
-          	ESP_LOGD("data", "%s", buffer);
+          }
+          
+          //ESP_LOGD("p1reader", "string read '%s'", buffer);
+
+          //int len = 0;
+          //Serial.readBytes(buffer, 1);
+          //ESP_LOGD("p1reader", "readP1Message read %c bytes", buffer[0]);
+          //String teststr = Serial.readString();
+          //int len = teststr.length();
+          //ESP_LOGD("p1reader", "readP1Message read %d bytes", len);
+          //if(len==0)
+          //  break;
+          if (completeLine)//(len > 0) 
+          {
+          	//ESP_LOGD("p1reader", "data %s", buffer);
 
             // put newline back as it is required for CRC calculation
             buffer[len] = '\n';
@@ -292,7 +374,7 @@ class P1Reader : public Component, public UARTDevice {
             if (strchr(buffer, '(') != NULL) {
               char* dataId = strtok(buffer, DELIMITERS);
               char* obisCode = strtok(NULL, DELIMITERS);
-
+              
               // ...and this row is a data row, then parse row
               if (strncmp(DATA_ID, dataId, strlen(DATA_ID)) == 0) {
                 char* value = strtok(NULL, DELIMITERS);
@@ -300,6 +382,9 @@ class P1Reader : public Component, public UARTDevice {
                 parseRow(&parsed, obisCode, value);
               }
             }
+            completeLine = false;
+            pos = 0;
+            len = 0;
           }
           // clean buffer
           memset(buffer, 0, BUF_SIZE - 1);
@@ -311,9 +396,13 @@ class P1Reader : public Component, public UARTDevice {
         }
 
         // if the CRC pass, publish sensor values
-        if (parsed.crcOk) {
-          publishSensors(&parsed);
-        }
+        // if (parsed.crcOk) 
+        // {
+          if(telegramEnded)
+          {
+            publishSensors(&parsed);
+          }
+        // }
       }
     }
 
