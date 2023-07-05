@@ -42,6 +42,10 @@ ota:
 #     #inverted: true
 #   baud_rate: 115200
 
+dallas:
+  - pin: 16
+
+
 
 sensor:
 - platform: uptime
@@ -49,7 +53,9 @@ sensor:
 - platform: wifi_signal
   name: "esp-p1reader Wi-Fi Signal"
   update_interval: 60s
-
+- platform: dallas
+  address: 0xe60008020babd110
+  name: "pico2 temp1"
 # light:
 #   - platform: rgb
 #     name: RGB
