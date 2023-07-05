@@ -15,11 +15,11 @@ wifi:
   power_save_mode: NONE
 # Optional manual IP
   manual_ip:
-    static_ip: 192.168.2.41
-    gateway: 192.168.2.1
-    subnet: 255.255.255.0
-    dns1: 192.168.2.31
-    dns2: 192.168.2.1
+    static_ip: !secret ip_pico1
+    gateway: !secret ip_gw
+    subnet: !secret ip_subnet
+    dns1: !secret ip_dns1
+    dns2: !secret ip_dns2
 
 # Enable logging
 logger:
