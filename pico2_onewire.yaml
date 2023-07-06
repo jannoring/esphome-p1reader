@@ -1,5 +1,9 @@
+substitutions:
+  device_name: rpi-pico2
+  #device_description: "P1 module to read smart meter"
+
 esphome:
-  name: rpi-pico2
+  name: ${device_name}
 
 rp2040:
   board: rpipicow
@@ -49,13 +53,13 @@ dallas:
 
 sensor:
 - platform: uptime
-  name: "esp-p1reader Uptime"
+  name: ${device_name} Uptime
 - platform: wifi_signal
-  name: "esp-p1reader Wi-Fi Signal"
+  name: ${device_name} Wi-Fi Signal
   update_interval: 60s
 - platform: dallas
   address: 0xe60008020babd110
-  name: "pico2 temp1"
+  name: ${device_name} temp1
 # light:
 #   - platform: rgb
 #     name: RGB
@@ -77,11 +81,11 @@ sensor:
 text_sensor:
   - platform: wifi_info
     ip_address:
-      name: "esp-p1reader IP Address"
+      name: ${device_name} IP Address
     ssid:
-      name: "esp-p1reader Wi-Fi SSID"
+      name: ${device_name} Wi-Fi SSID
     bssid:
-      name: "esp-p1reader Wi-Fi BSSID"
+      name: ${device_name} Wi-Fi BSSID
   - platform: version
-    name: "ESPHome Version"
+    name: ${device_name} ESPHome Version
     hide_timestamp: false
