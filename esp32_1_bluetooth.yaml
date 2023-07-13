@@ -1,23 +1,23 @@
 substitutions:
-  device_name: rpi-pico2
+  device_name: esp-bluetooth-proxy1
+  board: esp32dev
   #device_description: "P1 module to read smart meter"
 
 esphome:
   name: ${device_name}
 
-rp2040:
-  board: rpipicow
+esp32:
+  board: ${board}
   framework:
-    platform_version: https://github.com/maxgerhardt/platform-raspberrypi.git
+    type: esp-idf
 
 wifi:
   ssid:  !secret wifi_ssid
   password:  !secret wifi_password
   fast_connect: True
-  power_save_mode: NONE
 # Optional manual IP
   manual_ip:
-    static_ip: !secret ip_pico2
+    static_ip: !secret ip_esp1
     gateway: !secret ip_gw
     subnet: !secret ip_subnet
     dns1: !secret ip_dns1
@@ -37,6 +37,16 @@ api:
 ota:
   password: !secret ota_password
 
+esp32_ble_tracker:
+  scan_parameters:
+    # We currently use the defaults to ensure Bluetooth
+    # can co-exist with WiFi In the future we may be able to
+    # enable the built-in coexistence logic in ESP-IDF
+    active: true
+
+bluetooth_proxy:
+  active: true
+
 # uart:
 #   id: uart_0
 #   tx_pin: 
@@ -46,24 +56,20 @@ ota:
 #     #inverted: true
 #   baud_rate: 115200
 
-dallas:
-  - pin: 16
+# dallas:
+#   - pin: 16
 
 
 
 sensor:
 - platform: uptime
-  name: ${device_name} Uptime
+  name: ${device_name}  Uptime
 - platform: wifi_signal
-  name: ${device_name} Wi-Fi Signal
+  name: ${device_name}  Wi-Fi Signal
   update_interval: 60s
-- platform: dallas
-  address: 0xe60008020babd110
-  name: ${device_name} temp1
-- platform: dallas
-  address: 0x290008020b96ec10
-  name: ${device_name} MetalSensor1
-
+#- platform: dallas
+  # address: 0xe60008020babd110
+  # name: "pico2 temp1"
 # light:
 #   - platform: rgb
 #     name: RGB
