@@ -49,8 +49,6 @@ ota:
 # dallas:
 #   - pin: 16
 
-
-
 sensor:
 - platform: uptime
   name: ${device_name}  Uptime
@@ -63,6 +61,7 @@ sensor:
 - platform: homeassistant
   entity_id: sensor.total_dc_power
   id: dc_power
+
 binary_sensor:
 - platform: homeassistant
   entity_id: binary_sensor.garage_open
@@ -70,7 +69,28 @@ binary_sensor:
 - platform: homeassistant
   entity_id: binary_sensor.huvudentre_open
   id: entre_open
-
+- platform: gpio
+  id: pb3
+  name: pb3
+  pin:
+    number: GPIO12
+    inverted: true
+    mode:
+      input: true
+      pullup: true
+  filters:
+    - delayed_off: 10ms
+- platform: gpio
+  id: pb1
+  name: pb1
+  pin:
+    number: GPIO13
+    inverted: true
+    mode:
+      input: true
+      pullup: true
+  filters:
+    - delayed_off: 10ms
   
 display:
   - platform: lcd_gpio
@@ -86,7 +106,7 @@ display:
     lambda: |-
       it.strftime(0,0,"%H:%M", id(my_time).now());
       it.printf(6,0, "g%s%s e%s%s", id(garage_open).state ? "O" : "C",id(sensor_garage_lock).state=="locked" ? "L" : "U", id(entre_open).state ? "O" : "C", id(sensor_huvudentre_lock).state=="locked" ? "L" : "U");
-      it.printf(0,1,"%.0f W %.0f W", id(load_power).state, id(dc_power).state);
+      it.printf(0,1,"%.0fW %.0fW", id(load_power).state, id(dc_power).state);
 time:
 - platform: homeassistant
   id: my_time
