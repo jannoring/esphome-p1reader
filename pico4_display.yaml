@@ -61,6 +61,9 @@ sensor:
 - platform: homeassistant
   entity_id: sensor.total_dc_power
   id: dc_power
+- platform: homeassistant
+  entity_id: sensor.outdoor
+  id: outdoor_temp
 
 binary_sensor:
 - platform: homeassistant
@@ -106,7 +109,7 @@ display:
     lambda: |-
       it.strftime(0,0,"%H:%M", id(my_time).now());
       it.printf(6,0, "g%s%s e%s%s", id(garage_open).state ? "O" : "C",id(sensor_garage_lock).state=="locked" ? "L" : "U", id(entre_open).state ? "O" : "C", id(sensor_huvudentre_lock).state=="locked" ? "L" : "U");
-      it.printf(0,1,"%.0fW %.0fW", id(load_power).state, id(dc_power).state);
+      it.printf(0,1,"%.0fW %.0fW %.1fC", id(load_power).state, id(dc_power).state, id(outdoor_temp).state);
 time:
 - platform: homeassistant
   id: my_time
@@ -128,4 +131,23 @@ text_sensor:
   - platform: homeassistant
     entity_id: lock.huvudentre
     id: sensor_huvudentre_lock        
-   
+
+switch:
+  - platform: gpio
+    pin:
+      number: GPIO10
+      mode: output
+    id: redLED1
+  - platform: gpio
+    pin:
+      number: GPIO11
+      mode: output
+    id: redLED2
+
+#interval:
+  # - interval: 500ms
+  #   then:
+  #     - switch.toggle: redLED1
+  # - interval: 1s
+  #   then:
+  #     - switch.toggle: redLED2
